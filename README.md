@@ -1,2 +1,9 @@
-# amqp
-Advanced Message Queue Protocol using RabitMQ
+# Advanced Message Queue Protocol using RabitMQ
+
+## Viết chương trình gửi nhận dữ liệu qua RabbitMQ
+- Cài đặt, sử dụng một RabbitMQ broker
+- Chương trình Producer gửi dữ liệu (message)
+- Chương trình Consumer nhận dữ liệu
+  - Sử dụng default exchange (type: direct)
+
+
