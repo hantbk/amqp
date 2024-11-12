@@ -2,11 +2,21 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
+
+type SensorData struct {
+	ID          int     `json:"id"`
+	PacketNo    int     `json:"packet_no"`
+	Temperature int     `json:"temperature"`
+	Humidity    int     `json:"humidity"`
+	TDS         int     `json:"tds"`
+	PH          float64 `json:"pH"`
+}
 
 func failOnError(err error, msg string) {
 	if err != nil {
@@ -33,18 +43,31 @@ func main() {
 	)
 	failOnError(err, "Failed to declare a queue")
 
+	// Create the sensor data
+	data := SensorData{
+		ID:          11,
+		PacketNo:    126,
+		Temperature: 30,
+		Humidity:    60,
+		TDS:         1100,
+		PH:          5.0,
+	}
+
+	// Marshal the data into JSON format
+	body, err := json.Marshal(data)
+	failOnError(err, "Failed to encode JSON")
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	body := "Hello World! Publish message to broker"
 	err = ch.PublishWithContext(ctx,
 		"",     // exchange
 		q.Name, // routing key
 		false,  // mandatory
 		false,  // immediate
 		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(body),
+			ContentType: "application/json",
+			Body:        body,
 		})
 	failOnError(err, "Failed to publish a message")
 	log.Printf(" [x] Sent %s\n", body)

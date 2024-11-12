@@ -1,10 +1,20 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
+
+type SensorData struct {
+	ID          int     `json:"id"`
+	PacketNo    int     `json:"packet_no"`
+	Temperature int     `json:"temperature"`
+	Humidity    int     `json:"humidity"`
+	TDS         int     `json:"tds"`
+	PH          float64 `json:"pH"`
+}
 
 func failOnError(err error, msg string) {
 	if err != nil {
@@ -33,7 +43,7 @@ func main() {
 
 	msgs, err := ch.Consume(
 		q.Name, // queue
-		"ktmt", // consumer
+		"",     // consumer
 		true,   // auto-ack
 		false,  // exclusive
 		false,  // no-local
@@ -46,7 +56,12 @@ func main() {
 
 	go func() {
 		for d := range msgs {
-			log.Printf("Received a message: %s", d.Body)
+			var data SensorData
+			if err := json.Unmarshal(d.Body, &data); err != nil {
+				log.Printf("Error decoding JSON: %s", err)
+				continue
+			}
+			log.Printf("Received a message: %+v", data)
 		}
 	}()
 
